@@ -6,6 +6,7 @@ import Button from "@/components/Button";
 import { signOut } from "firebase/auth";
 import { auth } from "@/config/firebase";
 import { useAuth } from "@/contexts/authContext";
+import ScreenWrapper from "@/components/ScreenWrapper";
 
 const Home = () => {
   const { user } = useAuth();
@@ -15,12 +16,12 @@ const Home = () => {
     await signOut(auth);
   };
   return (
-    <View>
-      <Text>index</Text>
+    <ScreenWrapper>
+      <Typo>index</Typo>
       <Button onPress={handleLogout}>
         <Typo color={colors.black}>Logout</Typo>
       </Button>
-    </View>
+    </ScreenWrapper>
   );
 };
 
