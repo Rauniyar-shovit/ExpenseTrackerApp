@@ -9,11 +9,12 @@ import Input from "@/components/Input";
 import * as Icons from "phosphor-react-native";
 import Button from "@/components/Button";
 import { useRouter } from "expo-router";
+import { useAuth } from "@/contexts/authContext";
 
 const Login = () => {
   const emailRef = useRef("");
   const passwordRef = useRef("");
-
+  const { login } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -22,9 +23,14 @@ const Login = () => {
       Alert.alert("Login", "Please fill in all fields");
       return;
     }
-    console.log("email", emailRef.current);
-    console.log("password", passwordRef.current);
-    console.log("good to go");
+    setIsLoading(true);
+    const res = await login(emailRef.current, passwordRef.current);
+
+    setIsLoading(false);
+    if (!res.success) {
+      console.log(res?.message);
+      Alert.alert("Login", res?.message);
+    }
   };
   return (
     <ScreenWrapper>
