@@ -16,6 +16,7 @@ const LogoutModal = ({
   setModalVisible,
   handleLogout,
 }: LogoutModalProps) => {
+  // needs backdropper to be added
   return (
     <Modal
       animationType="slide"

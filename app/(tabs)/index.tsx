@@ -18,9 +18,6 @@ const Home = () => {
   return (
     <ScreenWrapper>
       <Typo>index</Typo>
-      <Button onPress={handleLogout}>
-        <Typo color={colors.black}>Logout</Typo>
-      </Button>
     </ScreenWrapper>
   );
 };

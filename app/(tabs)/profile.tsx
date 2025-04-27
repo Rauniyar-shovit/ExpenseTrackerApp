@@ -50,6 +50,10 @@ const Profile = () => {
     if (item.title == "Logout") {
       setLogoutModalVisible(true);
     }
+
+    if (item.routeName) {
+      router.push(item.routeName);
+    }
   };
 
   const handleLogout = async () => {

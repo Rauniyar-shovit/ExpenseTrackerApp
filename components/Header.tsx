@@ -6,7 +6,7 @@ import Typo from "./Typo";
 const Header = ({ title = "", leftIcon, style }: HeaderProps) => {
   return (
     <View style={[styles.container, style]}>
-      {leftIcon && <View style={styles.leftIcon}>{leftIcon} </View>}
+      {leftIcon && <View style={styles.leftIcon}>{leftIcon}</View>}
       {title && (
         <Typo
           size={22}
