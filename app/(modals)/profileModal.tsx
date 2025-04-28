@@ -1,5 +1,11 @@
-import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
-import React, { useState } from "react";
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import React, { useEffect, useState } from "react";
 import { colors, spacingX, spacingY } from "@/constants/theme";
 import { scale, verticalScale } from "@/utils/styling";
 import ModalWrapper from "@/components/ModalWrapper";
@@ -12,14 +18,72 @@ import Typo from "@/components/Typo";
 import Input from "@/components/Input";
 import { UserDataType } from "@/types";
 import Button from "@/components/Button";
+import { updateUser } from "@/services/userService";
+import { useAuth } from "@/contexts/authContext";
+import { useRouter } from "expo-router";
+import * as ImagePicker from "expo-image-picker";
+
 const ProfileModal = () => {
+  const { user, updateUserData } = useAuth();
   const [userData, setUserData] = useState<UserDataType>({
     name: "",
     image: "",
   });
+  const router = useRouter();
+
+  useEffect(() => {
+    setUserData({
+      name: user?.name || "",
+      image: user?.image || "",
+    });
+  }, [user]);
 
   const [loading, setLoading] = useState(false);
-  const onSubmit = async () => {};
+
+  const onSubmit = async () => {
+    let { name, image } = userData;
+
+    if (!name.trim()) {
+      Alert.alert("User", "Please fill all the fields");
+    }
+
+    setLoading(true);
+    const res = await updateUser(user?.uid!, userData);
+    setLoading(false);
+    if (res.success) {
+      updateUserData(user?.uid!);
+      router.back();
+    }
+  };
+
+  const pickUserImageHandler = async () => {
+    // No permissions request is necessary for launching the image library
+
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Sorry, we need media library permissions to make this work!"
+      );
+      return;
+    }
+    console.log("🚀 ~ pickUserImageHandler ~ status:", status);
+
+    if (status !== "granted") {
+      alert("Sorry, we need media library permissions to make this work!");
+      return;
+    }
+
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.5,
+    });
+    if (!result.canceled) {
+      setUserData((prev) => ({ ...prev, image: result.assets[0] }));
+    }
+  };
+
   return (
     <ModalWrapper>
       <View style={styles.container}>
@@ -36,7 +100,10 @@ const ProfileModal = () => {
               contentFit="cover"
               transition={100}
             />
-            <TouchableOpacity style={styles.editIcon}>
+            <TouchableOpacity
+              style={styles.editIcon}
+              onPress={pickUserImageHandler}
+            >
               <Icons.Pencil
                 size={verticalScale(20)}
                 color={colors.neutral800}
