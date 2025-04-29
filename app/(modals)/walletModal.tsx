@@ -8,6 +8,7 @@ import Typo from "@/components/Typo";
 import { colors, spacingX, spacingY } from "@/constants/theme";
 import { useAuth } from "@/contexts/authContext";
 import { updateUser } from "@/services/userService";
+import { createOrUpdateWallet } from "@/services/walletService";
 import { WalletType } from "@/types";
 import { scale, verticalScale } from "@/utils/styling";
 import { useRouter } from "expo-router";
@@ -28,15 +29,21 @@ const WalletModal = () => {
     let { name, image } = wallet;
 
     if (!name.trim()) {
-      Alert.alert("User", "Please fill all the fields");
+      Alert.alert("Wallet", "Please fill all the fields");
     }
 
+    const data: WalletType = { name, image, uid: user?.uid };
+
+    // todo include wallet id if updating
+
     setLoading(true);
-    const res = await updateUser(user?.uid!, wallet);
+    const res = await createOrUpdateWallet(data);
+    console.log("🚀 ~ onSubmit ~ res:", res);
     setLoading(false);
     if (res.success) {
-      updateUserData(user?.uid!);
       router.back();
+    } else {
+      Alert.alert("Wallet ", res.message);
     }
   };
 
