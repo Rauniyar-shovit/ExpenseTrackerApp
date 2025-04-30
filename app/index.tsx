@@ -1,8 +1,7 @@
 import { Image, StyleSheet, Text, View } from "react-native";
-import React, { useEffect } from "react";
+import React from "react";
 import { colors } from "@/constants/theme";
 import { useRouter } from "expo-router";
-import ScreenWrapper from "@/components/ScreenWrapper";
 
 const index = () => {
   const router = useRouter();
