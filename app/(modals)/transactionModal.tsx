@@ -76,6 +76,7 @@ const TransactionModal = () => {
   const onSubmit = async () => {
     const { type, amount, description, date, category, walletId, image } =
       transaction;
+    console.log("🚀 ~ onSubmit ~ category:", category);
 
     if (!walletId || !date || (type === "expense" && !category)) {
       Alert.alert("Transaction", "Please fill all the fields");
@@ -87,6 +88,7 @@ const TransactionModal = () => {
     let transactionData: TransactionType = {
       ...transaction,
       uid: user?.uid,
+      category: type === "income" ? "" : category,
     };
     console.log("transactionData", transactionData);
 

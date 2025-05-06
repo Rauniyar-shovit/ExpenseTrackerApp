@@ -13,6 +13,8 @@ import { uploadFileToCloudinary } from "./imageServices";
 export const createOrUpdateTransaction = async (
   transactionData: Partial<TransactionType>
 ): Promise<ResponseType> => {
+  console.log("🚀 ~ transactionData:", transactionData);
+
   try {
     const {
       id,
