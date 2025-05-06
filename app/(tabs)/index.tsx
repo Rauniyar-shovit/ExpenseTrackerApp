@@ -1,30 +1,35 @@
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  Touchable,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import React from "react";
+import Button from "@/components/Button";
+import HomeCard from "@/components/HomeCard";
+import ScreenWrapper from "@/components/ScreenWrapper";
+import TransactionList from "@/components/TransactionList";
 import Typo from "@/components/Typo";
 import { colors, spacingX, spacingY } from "@/constants/theme";
-import Button from "@/components/Button";
-import { signOut } from "firebase/auth";
-import { auth } from "@/config/firebase";
 import { useAuth } from "@/contexts/authContext";
-import ScreenWrapper from "@/components/ScreenWrapper";
+import useFetchData from "@/hooks/useFetchData";
+import { TransactionType } from "@/types";
 import { verticalScale } from "@/utils/styling";
-import * as Icons from "phosphor-react-native";
-import HomeCard from "@/components/HomeCard";
-import TransactionList from "@/components/TransactionList";
 import { useRouter } from "expo-router";
+import { limit, orderBy, where } from "firebase/firestore";
+import * as Icons from "phosphor-react-native";
+import React from "react";
+import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 const Home = () => {
   const { user } = useAuth();
   const router = useRouter();
-  const handleLogout = async () => {
-    await signOut(auth);
-  };
+
+  const constraints = [
+    where("uid", "==", user?.uid),
+    orderBy("date", "desc"),
+    limit(30),
+  ];
+
+  const {
+    data: recentTransactions,
+    loading: transactionLoading,
+    error,
+  } = useFetchData<TransactionType>("transactions", constraints);
+  console.log("🚀 ~ Home ~ recentTransactions:", recentTransactions);
+
   return (
     <ScreenWrapper>
       <View style={styles.container}>
@@ -56,18 +61,8 @@ const Home = () => {
           </View>
           <TransactionList
             title={"Recent Transactions"}
-            data={[
-              "saad",
-              "asd",
-              "asd",
-              "sad",
-              "sad",
-              "sad",
-              "sad",
-              "sad",
-              "sad",
-            ]}
-            loading={false}
+            data={recentTransactions}
+            loading={transactionLoading}
             emptyListMessage={"No Recent Transactions"}
           />
         </ScrollView>

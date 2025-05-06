@@ -13,8 +13,6 @@ import { uploadFileToCloudinary } from "./imageServices";
 export const createOrUpdateTransaction = async (
   transactionData: Partial<TransactionType>
 ): Promise<ResponseType> => {
-  console.log("🚀 ~ transactionData:", transactionData);
-
   try {
     const {
       id,
@@ -66,8 +64,8 @@ export const createOrUpdateTransaction = async (
     }
 
     const transactionRef = id
-      ? doc(firestore, "transaction", id)
-      : doc(collection(firestore, "transaction"));
+      ? doc(firestore, "transactions", id)
+      : doc(collection(firestore, "transactions"));
 
     await setDoc(transactionRef, transactionData, { merge: true });
 
@@ -110,7 +108,8 @@ const updateWalletForNewTransaction = async (
       };
     }
 
-    const updateWalletType = type === "income" ? "totalIcome" : "totalExpenses";
+    const updateWalletType =
+      type === "income" ? "totalIncome" : "totalExpenses";
     const updatedWalletAmount =
       type === "income"
         ? Number(walletData?.amount) + amount

@@ -67,16 +67,9 @@ const TransactionModal = () => {
     value: wallet?.id,
   }));
 
-  //   useEffect(() => {
-  //     if (oldTransaction?.id) {
-  //       setTransaction({ ...oldTransaction });
-  //     }
-  //   }, []);
-
   const onSubmit = async () => {
     const { type, amount, description, date, category, walletId, image } =
       transaction;
-    console.log("🚀 ~ onSubmit ~ category:", category);
 
     if (!walletId || !date || (type === "expense" && !category)) {
       Alert.alert("Transaction", "Please fill all the fields");
@@ -90,7 +83,6 @@ const TransactionModal = () => {
       uid: user?.uid,
       category: type === "income" ? "" : category,
     };
-    console.log("transactionData", transactionData);
 
     // to dod include transaction id for updateing
 
