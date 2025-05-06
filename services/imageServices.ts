@@ -25,7 +25,7 @@ export const uploadFileToCloudinary = async (
         uri: file.uri,
         name: file?.uri.split("/").pop() || "file.jpg",
         type: "image/jpeg",
-      }  as (uri:string,name: string, value: string | Blob));
+      } as any);
 
       formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
       formData.append("folder", folderName);

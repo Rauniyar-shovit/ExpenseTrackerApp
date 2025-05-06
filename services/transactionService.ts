@@ -1,6 +1,14 @@
 import { firestore } from "@/config/firebase";
 import { ResponseType, TransactionType, WalletType } from "@/types";
-import { and, doc, getDoc, updateDoc } from "firebase/firestore";
+import {
+  and,
+  collection,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
+import { uploadFileToCloudinary } from "./imageServices";
 
 export const createOrUpdateTransaction = async (
   transactionData: Partial<TransactionType>
@@ -28,11 +36,42 @@ export const createOrUpdateTransaction = async (
     if (id) {
       // to do update transaction existing
     } else {
-      // update wallet for new transaction
+      let res = await updateWalletForNewTransaction(
+        walletId,
+        Number(amount),
+        type
+      );
+
+      if (!res.success) {
+        return res;
+      }
     }
+
+    if (image) {
+      const imageUploadRes = await uploadFileToCloudinary(
+        image,
+        "transactions"
+      );
+
+      if (!imageUploadRes.success) {
+        return {
+          success: false,
+          message: imageUploadRes.message || "Failed to upload image",
+        };
+      }
+
+      transactionData.image = imageUploadRes.data;
+    }
+
+    const transactionRef = id
+      ? doc(firestore, "transaction", id)
+      : doc(collection(firestore, "transaction"));
+
+    await setDoc(transactionRef, transactionData, { merge: true });
+
     return {
       success: true,
-      message: "Transaction created successfully",
+      data: { ...transactionData, id: transactionRef.id },
     };
   } catch (error: any) {
     console.log("Error creating or updating transacting", error.message);

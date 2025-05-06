@@ -26,6 +26,7 @@ import {
 import { Dropdown } from "react-native-element-dropdown";
 import DatePicker from "react-native-date-picker";
 import Input from "@/components/Input";
+import { createOrUpdateTransaction } from "@/services/transactionService";
 
 const TransactionModal = () => {
   const { user } = useAuth();
@@ -88,6 +89,17 @@ const TransactionModal = () => {
       uid: user?.uid,
     };
     console.log("transactionData", transactionData);
+
+    // to dod include transaction id for updateing
+
+    setLoading(true);
+    const res = await createOrUpdateTransaction(transactionData);
+    setLoading(false);
+    if (res.success) {
+      router.back();
+    } else {
+      Alert.alert("Transaction", res?.message);
+    }
   };
 
   const onDateChange = (selectedDate: Date) => {
