@@ -14,7 +14,7 @@ import { scale, verticalScale } from "@/utils/styling";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { orderBy, where } from "firebase/firestore";
 import * as Icons from "phosphor-react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Platform,
@@ -30,16 +30,6 @@ import { createOrUpdateTransaction } from "@/services/transactionService";
 
 const TransactionModal = () => {
   const { user } = useAuth();
-
-  const {
-    data: wallets,
-    loading: walletLoading,
-    error: walletError,
-  } = useFetchData<WalletType>("wallets", [
-    where("uid", "==", user?.uid),
-    orderBy("created", "desc"),
-  ]);
-
   const [transaction, setTransaction] = useState<TransactionType>({
     type: "expense",
     amount: 0,
@@ -50,6 +40,14 @@ const TransactionModal = () => {
     walletId: "",
   });
 
+  const {
+    data: wallets,
+    loading: walletLoading,
+    error: walletError,
+  } = useFetchData<WalletType>("wallets", [
+    where("uid", "==", user?.uid),
+    orderBy("created", "desc"),
+  ]);
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
@@ -57,15 +55,36 @@ const TransactionModal = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const oldTransaction: {
-    name: string;
-    image: string;
     id: string;
+    type: string;
+    amount: string;
+    category?: string;
+    date: string;
+    description: string;
+    image?: any;
+    uid?: string;
+    walletId: string;
   } = useLocalSearchParams();
 
   const walletDropdownList = wallets.map((wallet) => ({
     label: `${wallet?.name} ($${wallet?.amount})`,
     value: wallet?.id,
   }));
+
+  useEffect(() => {
+    if (oldTransaction?.id) {
+      setTransaction({
+        type: oldTransaction.type,
+        amount: +oldTransaction.amount,
+        category: oldTransaction.category,
+        date: new Date(oldTransaction.date),
+        description: oldTransaction.description,
+        image: oldTransaction.image,
+        uid: oldTransaction.uid,
+        walletId: oldTransaction.walletId,
+      });
+    }
+  }, []);
 
   const onSubmit = async () => {
     const { type, amount, description, date, category, walletId, image } =
@@ -76,17 +95,18 @@ const TransactionModal = () => {
       return;
     }
 
-    console.log("Good to go");
-
     let transactionData: TransactionType = {
       ...transaction,
       uid: user?.uid,
       category: type === "income" ? "" : category,
     };
 
-    // to dod include transaction id for updateing
+    if (oldTransaction?.id) {
+      transactionData.id = oldTransaction.id;
+    }
 
     setLoading(true);
+
     const res = await createOrUpdateTransaction(transactionData);
     setLoading(false);
     if (res.success) {
@@ -190,7 +210,6 @@ const TransactionModal = () => {
               maxHeight={300}
               labelField="label"
               valueField="value"
-              searchPlaceholder="Search..."
               value={transaction.walletId}
               onChange={(item) => {
                 setTransaction((prev) => ({ ...prev, walletId: item.value }));

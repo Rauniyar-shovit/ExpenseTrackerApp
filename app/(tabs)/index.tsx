@@ -28,7 +28,6 @@ const Home = () => {
     loading: transactionLoading,
     error,
   } = useFetchData<TransactionType>("transactions", constraints);
-  console.log("🚀 ~ Home ~ recentTransactions:", recentTransactions);
 
   return (
     <ScreenWrapper>
