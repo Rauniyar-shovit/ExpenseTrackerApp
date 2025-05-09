@@ -26,7 +26,10 @@ import {
 import { Dropdown } from "react-native-element-dropdown";
 import DatePicker from "react-native-date-picker";
 import Input from "@/components/Input";
-import { createOrUpdateTransaction } from "@/services/transactionService";
+import {
+  createOrUpdateTransaction,
+  deleteTransaction,
+} from "@/services/transactionService";
 
 const TransactionModal = () => {
   const { user } = useAuth();
@@ -126,12 +129,15 @@ const TransactionModal = () => {
   const onDelete = async () => {
     if (!oldTransaction?.id) return;
     setLoading(true);
-    const res = await deleteWallet(oldTransaction?.id);
+    const res = await deleteTransaction(
+      oldTransaction?.id,
+      oldTransaction.walletId
+    );
     setLoading(false);
     if (res.success) {
       router.back();
     } else {
-      Alert.alert("Wallet ", res.message);
+      Alert.alert("Transcation ", res.message);
     }
   };
 
@@ -139,7 +145,7 @@ const TransactionModal = () => {
   const showDelteAlert = () => {
     Alert.alert(
       "Confirm",
-      "Are you sure you want to delete this wallet?\nThis action will remove all the transactions realted to this wallet",
+      "Are you sure you want to delete this Transaction?",
       [
         {
           text: "Cancel",

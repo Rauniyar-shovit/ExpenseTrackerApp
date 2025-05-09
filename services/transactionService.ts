@@ -3,6 +3,7 @@ import { ResponseType, TransactionType, WalletType } from "@/types";
 import {
   and,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   setDoc,
@@ -191,11 +192,16 @@ const revertAndUpdateWallets = async (
       Number(originalWallet.amount) + revertIncomeExpense;
 
     //wallet amount after the transaction is remvoed
+    console.log("🚀 ~ revertType:", revertType);
+    console.log("🚀 ~ revertIncomeExpense:", revertIncomeExpense);
+    console.log("🚀 ~ revertedWalletAmount:", revertedWalletAmount);
 
     const revertTotalIncomeExpense =
       Number(originalWallet[revertType]) - +oldTransaction.amount;
 
     const isSameWallet = oldTransaction.walletId === newWalletId;
+
+    console.log("🚀 ~ isSameWallet:", isSameWallet);
 
     if (newTransactionType === "expense") {
       //user  tries to conver income to expenses on the same wallet
@@ -223,12 +229,17 @@ const revertAndUpdateWallets = async (
         [revertType]: revertTotalIncomeExpense,
       });
 
+      console.log("Turbo  Original wallet", originalWallet);
+
       // ///////////////////////////////////////////////
 
       // refetch the new wallet because might be updated recently
       newWalletSnapshot = await getDoc(doc(firestore, "wallets", newWalletId));
 
       newWallet = newWalletSnapshot.data() as WalletType;
+
+      console.log("here");
+      console.log("🚀 ~ newWallet:", newWallet);
 
       const updateType =
         newTransactionType === ("income" as any)
@@ -251,14 +262,72 @@ const revertAndUpdateWallets = async (
         amount: newWalletAmount,
         [updateType]: newTotalsIncomeExpense,
       });
-
-      return {
-        success: true,
-        message: "updated",
-      };
     }
+    return {
+      success: true,
+      message: "updated",
+    };
   } catch (error: any) {
     console.log("Error updating wallet for new transcation", error.message);
+    return {
+      success: false,
+      message: error.message,
+    };
+  }
+};
+
+export const deleteTransaction = async (
+  transactionId: string,
+  walletId: string
+): Promise<ResponseType> => {
+  try {
+    const transactionRef = doc(firestore, "transactions", transactionId);
+    const transactionSnapshot = await getDoc(transactionRef);
+    const transactionData = transactionSnapshot.data() as TransactionType;
+
+    if (!transactionSnapshot.exists()) {
+      return {
+        success: false,
+        message: "Transcation not found",
+      };
+    }
+
+    const transactionType = transactionData?.type;
+    const transactionAmount = transactionData?.amount;
+
+    // fetch the walllet to update amount, totalIncome or totalExpense
+
+    const walletSnapshot = await getDoc(doc(firestore, "wallets", walletId));
+    const walletData = walletSnapshot.data() as WalletType;
+
+    // check fields to be updated based on transaction type
+    const updateType =
+      transactionType === "income" ? "totalIncome" : "totalExpenses";
+
+    const newWalletAmount =
+      Number(walletData?.amount) +
+      (transactionType === "income" ? -transactionAmount : transactionAmount);
+
+    const newIncomeExpenseAmount = walletData[updateType]! - transactionAmount;
+
+    if (transactionType === "income" && newWalletAmount < 0) {
+      return {
+        success: false,
+        message: "you cannot delete this transaction",
+      };
+    }
+
+    await createOrUpdateWallet({
+      id: walletId,
+      amount: newWalletAmount,
+      [updateType]: newIncomeExpenseAmount,
+    });
+
+    await deleteDoc(transactionRef);
+
+    return { success: true, message: "Transaction Deleted" };
+  } catch (error: any) {
+    console.log("error ");
     return {
       success: false,
       message: error.message,
