@@ -1,4 +1,5 @@
 import Header from "@/components/Header";
+import Loading from "@/components/Loading";
 import ScreenWrapper from "@/components/ScreenWrapper";
 import { colors, radius, spacingX, spacingY } from "@/constants/theme";
 import { scale, verticalScale } from "@/utils/styling";
@@ -89,7 +90,7 @@ const Statistics = () => {
   ];
   const [activeIndex, setActiveIndex] = useState(0);
   const [chartData, setChartData] = useState(data);
-
+  const [chartLoading, setChartLoading] = useState(false);
   const renderChart =
     chartData.length > 0 ? (
       <BarChart
@@ -102,7 +103,7 @@ const Statistics = () => {
         yAxisLabelPrefix="$"
         yAxisThickness={0}
         xAxisThickness={0}
-        yAxisLabelWidth={scale(25)}
+        yAxisLabelWidth={[1, 2].includes(activeIndex) ? scale(38) : scale(35)}
         yAxisTextStyle={{ color: colors.neutral350 }}
         xAxisLabelTextStyle={{
           color: colors.neutral350,
@@ -110,6 +111,8 @@ const Statistics = () => {
         }}
         noOfSections={3}
         minHeight={5}
+        // isAnimated={true}
+        // animationDuration={1000}
       />
     ) : (
       <View style={styles.noChart} />
@@ -145,6 +148,11 @@ const Statistics = () => {
           />
 
           <View style={styles.chartContainer}>{renderChart}</View>
+          {chartLoading && (
+            <View style={styles.chartLoadingContainer}>
+              <Loading color={colors.white} />
+            </View>
+          )}
         </ScrollView>
       </View>
     </ScreenWrapper>
