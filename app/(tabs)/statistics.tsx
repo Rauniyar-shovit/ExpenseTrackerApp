@@ -1,9 +1,14 @@
 import Header from "@/components/Header";
 import Loading from "@/components/Loading";
 import ScreenWrapper from "@/components/ScreenWrapper";
+import TransactionList from "@/components/TransactionList";
 import { colors, radius, spacingX, spacingY } from "@/constants/theme";
 import { useAuth } from "@/contexts/authContext";
-import { fetchWeeklyStats } from "@/services/transactionService";
+import {
+  fetchMonthlyStats,
+  fetchWeeklyStats,
+  fetYearlyStats,
+} from "@/services/transactionService";
 import { scale, verticalScale } from "@/utils/styling";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
 import React, { useEffect, useState } from "react";
@@ -25,7 +30,7 @@ const Statistics = () => {
     if (activeIndex == 1) {
       getMonthlyStats();
     }
-    if (activeIndex == 0) {
+    if (activeIndex == 2) {
       getYearlyStats();
     }
   }, [activeIndex]);
@@ -43,10 +48,31 @@ const Statistics = () => {
     }
   };
 
-  const getMonthlyStats = async () => {};
+  const getMonthlyStats = async () => {
+    setChartLoading(true);
+    let res = await fetchMonthlyStats(user?.uid as string);
+    setChartLoading(false);
 
-  const getYearlyStats = async () => {};
+    if (res.success) {
+      setChartData(res?.data?.stats);
+      setTransactions(res?.data?.transactions);
+    } else {
+      Alert.alert("Error", res.message);
+    }
+  };
 
+  const getYearlyStats = async () => {
+    setChartLoading(true);
+    let res = await fetYearlyStats(user?.uid as string);
+    setChartLoading(false);
+
+    if (res.success) {
+      setChartData(res?.data?.stats);
+      setTransactions(res?.data?.transactions);
+    } else {
+      Alert.alert("Error", res.message);
+    }
+  };
   const renderChart =
     chartData.length > 0 ? (
       <BarChart
@@ -110,7 +136,14 @@ const Statistics = () => {
             </View>
           )}
 
-          <View></View>
+          {/* tranasctions */}
+          <View>
+            <TransactionList
+              title="Transactions"
+              emptyListMessage="No trnasactions found"
+              data={transactions}
+            />
+          </View>
         </ScrollView>
       </View>
     </ScreenWrapper>

@@ -58,6 +58,7 @@ const Home = () => {
           <View>
             <HomeCard />
           </View>
+
           <TransactionList
             title={"Recent Transactions"}
             data={recentTransactions}
