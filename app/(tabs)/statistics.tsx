@@ -2,95 +2,51 @@ import Header from "@/components/Header";
 import Loading from "@/components/Loading";
 import ScreenWrapper from "@/components/ScreenWrapper";
 import { colors, radius, spacingX, spacingY } from "@/constants/theme";
+import { useAuth } from "@/contexts/authContext";
+import { fetchWeeklyStats } from "@/services/transactionService";
 import { scale, verticalScale } from "@/utils/styling";
 import SegmentedControl from "@react-native-segmented-control/segmented-control";
-import React, { useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Alert, ScrollView, StyleSheet, View } from "react-native";
 import { BarChart } from "react-native-gifted-charts";
 
 const Statistics = () => {
-  const data = [
-    {
-      value: 40,
-      label: "Mon",
-      spacing: scale(4),
-      labelWidth: scale(30),
-      frontColor: colors.primary,
-    },
-    {
-      value: 20,
-      frontColor: colors.rose,
-    },
-    {
-      value: 50,
-      label: "Tue",
-      spacing: scale(4),
-      labelWidth: scale(30),
-      frontColor: colors.primary,
-    },
-    {
-      value: 40,
-      frontColor: colors.rose,
-    },
-    {
-      value: 75,
-      label: "Wed",
-      spacing: scale(4),
-      labelWidth: scale(30),
-      frontColor: colors.primary,
-    },
-    {
-      value: 25,
-      frontColor: colors.rose,
-    },
-    {
-      value: 30,
-      label: "Thu",
-      spacing: scale(4),
-      labelWidth: scale(30),
-      frontColor: colors.primary,
-    },
-    {
-      value: 20,
-      frontColor: colors.rose,
-    },
-    {
-      value: 60,
-      label: "Fri",
-      spacing: scale(4),
-      labelWidth: scale(30),
-      frontColor: colors.primary,
-    },
-    {
-      value: 40,
-      frontColor: colors.rose,
-    },
-    {
-      value: 65,
-      label: "Sat",
-      spacing: scale(4),
-      labelWidth: scale(30),
-      frontColor: colors.primary,
-    },
-    {
-      value: 30,
-      frontColor: colors.rose,
-    },
-    {
-      value: 65,
-      label: "Sun",
-      spacing: scale(4),
-      labelWidth: scale(30),
-      frontColor: colors.primary,
-    },
-    {
-      value: 30,
-      frontColor: colors.rose,
-    },
-  ];
   const [activeIndex, setActiveIndex] = useState(0);
-  const [chartData, setChartData] = useState(data);
+  const [chartData, setChartData] = useState([]);
   const [chartLoading, setChartLoading] = useState(false);
+  const [transactions, setTransactions] = useState([]);
+
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (activeIndex == 0) {
+      getWeeklyStats();
+    }
+    if (activeIndex == 1) {
+      getMonthlyStats();
+    }
+    if (activeIndex == 0) {
+      getYearlyStats();
+    }
+  }, [activeIndex]);
+
+  const getWeeklyStats = async () => {
+    setChartLoading(true);
+    let res = await fetchWeeklyStats(user?.uid as string);
+    setChartLoading(false);
+
+    if (res.success) {
+      setChartData(res?.data?.stats);
+      setTransactions(res?.data?.transactions);
+    } else {
+      Alert.alert("Error", res.message);
+    }
+  };
+
+  const getMonthlyStats = async () => {};
+
+  const getYearlyStats = async () => {};
+
   const renderChart =
     chartData.length > 0 ? (
       <BarChart
@@ -153,6 +109,8 @@ const Statistics = () => {
               <Loading color={colors.white} />
             </View>
           )}
+
+          <View></View>
         </ScrollView>
       </View>
     </ScreenWrapper>

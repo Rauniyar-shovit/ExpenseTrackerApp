@@ -6,11 +6,20 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  getDocs,
+  orderBy,
+  query,
   setDoc,
+  Timestamp,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { uploadFileToCloudinary } from "./imageServices";
 import { createOrUpdateWallet } from "./walletService";
+import { getLast7Days } from "@/utils/common";
+import { transactionTypes } from "@/constants/data";
+import { scale } from "@/utils/styling";
+import { colors } from "@/constants/theme";
 
 export const createOrUpdateTransaction = async (
   transactionData: Partial<TransactionType>
@@ -326,6 +335,74 @@ export const deleteTransaction = async (
     await deleteDoc(transactionRef);
 
     return { success: true, message: "Transaction Deleted" };
+  } catch (error: any) {
+    console.log("error ");
+    return {
+      success: false,
+      message: error.message,
+    };
+  }
+};
+
+export const fetchWeeklyStats = async (uid: string): Promise<ResponseType> => {
+  try {
+    const db = firestore;
+    const today = new Date();
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(today.getDate() - 7);
+
+    const transactionQuery = query(
+      collection(db, "transactions"),
+      where("date", ">=", Timestamp.fromDate(sevenDaysAgo)),
+      where("date", "<=", Timestamp.fromDate(today)),
+      orderBy("date", "desc"),
+      where("uid", "==", uid)
+    );
+
+    const querySnapshot = await getDocs(transactionQuery);
+
+    const weeklyData = getLast7Days();
+    const transactions: TransactionType[] = [];
+
+    // mapping each tranasactions
+    querySnapshot.forEach((doc) => {
+      const transaction = doc.data() as TransactionType;
+
+      transaction.id = doc.id;
+      transactions.push(transaction);
+
+      const transactionDate = (transaction.date as Timestamp)
+        .toDate()
+        .toISOString()
+        .split("T")[0]; // as specific date
+
+      const dayData = weeklyData.find((day) => day.date == transactionDate);
+
+      if (dayData) {
+        if (transaction.type == "income") {
+          dayData.income += transaction.amount;
+        } else if (transaction.type == "expense") {
+          dayData.expense += transaction.amount;
+        }
+      }
+    });
+
+    // takes each day and creates two entries
+    const stats = weeklyData.flatMap((day) => [
+      {
+        value: day.income,
+        label: day.day,
+        spacing: scale(4),
+        labelWidth: scale(30),
+        frontColor: colors.primary,
+      },
+      {
+        value: day.expense,
+        frontColor: colors.rose,
+      },
+    ]);
+
+    return { success: true, data: { stats, transactions } };
   } catch (error: any) {
     console.log("error ");
     return {
