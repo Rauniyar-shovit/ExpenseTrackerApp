@@ -395,7 +395,6 @@ export const fetchWeeklyStats = async (uid: string): Promise<ResponseType> => {
         frontColor: colors.rose,
       },
     ]);
-    console.log("here---------------", stats);
 
     return { success: true, data: { stats, transactions } };
   } catch (error: any) {
